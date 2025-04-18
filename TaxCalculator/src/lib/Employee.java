@@ -21,17 +21,14 @@ public class Employee {
 	private int monthlySalary;
 	private int otherMonthlyIncome;
 	private int annualDeductible;
-	
-	private String spouseName;
-	private String spouseIdNumber;
 
-	private List<String> childNames;
-	private List<String> childIdNumbers;
+    private Spouse spouse; 
+    private List<Child> children; 
 	
 	enum Gender {
 		MALE, FEMALE
 	}
-	
+
     public Employee(String employeeId, String firstName, String lastName, String idNumber, String address,
                     LocalDate joinDate, boolean isForeigner, Gender gender) {
         this.employeeId = employeeId;
@@ -70,27 +67,52 @@ public class Employee {
 	}
 	
 	public void setSpouse(String spouseName, String spouseIdNumber) {
-		this.spouseName = spouseName;
-		this.spouseIdNumber = idNumber;
-	}
+        this.spouse = new Spouse(spouseName, spouseIdNumber);
+    }
 	
 	public void addChild(String childName, String childIdNumber) {
-		childNames.add(childName);
-		childIdNumbers.add(childIdNumber);
-	}
+        this.children.add(new Child(childName, childIdNumber));
+    }
 	
 	public int getAnnualIncomeTax() {
-		
-		//Menghitung berapa lama pegawai bekerja dalam setahun ini, jika pegawai sudah bekerja dari tahun sebelumnya maka otomatis dianggap 12 bulan.
-		LocalDate date = LocalDate.now();
-		
-		if (date.getYear() == yearJoined) {
-			monthWorkingInYear = date.getMonthValue() - monthJoined;
-		}else {
-			monthWorkingInYear = 12;
+        int monthWorkingInYear = 12;
+        LocalDate now = LocalDate.now();
+
+        if (now.getYear() == joinDate.getYear()) {
+            monthWorkingInYear = now.getMonthValue() - joinDate.getMonthValue();
+        }
+
+        boolean isMarried = spouse != null;
+        int numberOfChildren = Math.min(children.size(), 3);
+
+        return TaxFunction.calculateTax(
+                monthlySalary,
+                otherMonthlyIncome,
+                monthWorkingInYear,
+                annualDeductible,
+                isMarried,
+                numberOfChildren
+        );
+    }
+
+	class Spouse {
+		private String name;
+		private String idNumber;
+	
+		public Spouse(String name, String idNumber) {
+			this.name = name;
+			this.idNumber = idNumber;
 		}
-		
-		return TaxFunction.calculateTax(monthlySalary, otherMonthlyIncome, monthWorkingInYear, annualDeductible, spouseIdNumber.equals(""), childIdNumbers.size());
+	}
+	
+	class Child {
+		private String name;
+		private String idNumber;
+	
+		public Child(String name, String idNumber) {
+			this.name = name;
+			this.idNumber = idNumber;
+		}
 	}
 
 }
